@@ -2,6 +2,8 @@ package org.example.Models;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "schedulesteammembers")
 public class SchedulesTeamModel {
@@ -17,6 +19,12 @@ public class SchedulesTeamModel {
     private String userBirthDate;
     @Column(name = "userphonenumber")
     private String userPhoneNumber;
+
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinTable(name = "schedulesteammembersmessages",
+            joinColumns = @JoinColumn(name = "userid"),
+            inverseJoinColumns = @JoinColumn(name = "messageid"))
+    List<SchedulesMessageModel> messageModelList;
 
     public String getUserId() {
         return userId;
