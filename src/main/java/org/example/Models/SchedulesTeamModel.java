@@ -26,6 +26,12 @@ public class SchedulesTeamModel {
             inverseJoinColumns = @JoinColumn(name = "messageid"))
     List<SchedulesMessageModel> messageModelList;
 
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinTable(name = "schedulesteammembersroles",
+            joinColumns = @JoinColumn(name = "userid"),
+            inverseJoinColumns = @JoinColumn(name = "roleid"))
+    List<SchedulesRolesModel> teamRoleList;
+
     public String getUserId() {
         return userId;
     }

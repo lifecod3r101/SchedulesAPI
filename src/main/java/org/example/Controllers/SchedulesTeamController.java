@@ -27,8 +27,27 @@ public class SchedulesTeamController {
         return teamRepository.findById(userId).get();
     }
 
+    @PatchMapping("/update/{userId}")
+    public String updateTeamMember(@PathVariable("userId") String userId, @RequestParam(name = "userBirthDate", required = false) String userBirthDate, @RequestParam(name = "userEmail", required = false) String userEmail, @RequestParam(name = "userName", required = false) String userName, @RequestParam(name = "userPhoneNumber", required = false) String userPhoneNumber) {
+        SchedulesTeamModel teamModel = teamRepository.findById(userId).get();
+        if (userBirthDate != null) {
+            teamModel.setUserBirthDate(userBirthDate);
+        }
+        if (userEmail != null) {
+            teamModel.setUserEmail(userEmail);
+        }
+        if (userName != null) {
+            teamModel.setUserName(userName);
+        }
+        if (userPhoneNumber != null) {
+            teamModel.setUserPhoneNumber(userPhoneNumber);
+        }
+        teamRepository.save(teamModel);
+        return "Member updated";
+    }
+
     @DeleteMapping("/delete/{userId}")
-    public String removeTeamMember(@PathVariable("userId")String userId){
+    public String removeTeamMember(@PathVariable("userId") String userId) {
         teamRepository.deleteById(userId);
         return "Team member removed";
     }

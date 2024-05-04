@@ -37,27 +37,31 @@ public class SchedulesMessageController {
 
 
     @PostMapping("/send")
-    public String sendSmsMessage(@RequestParam("recipientPhoneNumber") String recipientPhoneNumber, @RequestParam("userMessage") String messageTitle) {
+    public String sendSmsMessage(@RequestParam("recipientId") String recipientUserId, @RequestParam("userMessageId") String messageId) {
         appStuff.initialiseTwilioService(twilioSid, twilioAuthToken);
-        String userPhoneNumber = teamRepository.findOneByUserPhoneNumber(recipientPhoneNumber).getUserPhoneNumber();
-        String sendingMessageContent = messageRepository.findOneByMessageTitle(messageTitle).getMessageContent();
-        String recipientUserId = teamRepository.findOneByUserPhoneNumber(recipientPhoneNumber).getUserId();
-        String sendingMessageId = messageRepository.findOneByMessageTitle(messageTitle).getMessageId();
+        String userPhoneNumber = teamRepository.findById(recipientUserId).get().getUserPhoneNumber();
+        String sendingMessageContent = messageRepository.findById(messageId).get().getMessageContent();
         SchedulesTeamMessagesModel teamMessagesModel = new SchedulesTeamMessagesModel();
-        teamMessagesModel.setMessageId(sendingMessageId);
+        teamMessagesModel.setMessageId(messageId);
         teamMessagesModel.setUserId(recipientUserId);
         teamMessageRepository.save(teamMessagesModel);
         Message message = Message.creator(new PhoneNumber("+".concat(userPhoneNumber)), new PhoneNumber("+".concat(sendingPhoneNumber)), sendingMessageContent).create();
         return message.getBody();
     }
 
+    //Method is to be revisited
     @PostMapping("/reply")
     public String replyWithApproveRequest(@RequestParam("recipientApproveReply") String approveReply) {
         appStuff.initialiseTwilioService(twilioSid, twilioAuthToken);
-        Body messageBody = new Body.Builder("Thank you for your response. Looking forward to having you").build();
-        com.twilio.twiml.messaging.Message message = new com.twilio.twiml.messaging.Message.Builder().body(messageBody).build();
-        MessagingResponse messagingResponse = new MessagingResponse.Builder().message(message).build();
-        return messagingResponse.toXml();
+        String xmlResponse = "";
+        if (approveReply.equals("Yes")) {
+            Body messageBody = new Body.Builder("Thank you for your response. Looking forward to having you").build();
+
+            com.twilio.twiml.messaging.Message message = new com.twilio.twiml.messaging.Message.Builder().body(messageBody).build();
+            MessagingResponse messagingResponse = new MessagingResponse.Builder().message(message).build();
+            xmlResponse = messagingResponse.toXml();
+        }
+        return xmlResponse;
     }
 
     @PostMapping("/store")
@@ -67,6 +71,26 @@ public class SchedulesMessageController {
         messageModel.setMessageContent(messageString);
         messageRepository.save(messageModel);
         return "Message Saved";
+    }
+
+    @PatchMapping("/update/{messageId}")
+    public String updateSmsMessage(@PathVariable("messageId") String messageId, @RequestParam(name = "messageTitle", required = false) String messageTitle, @RequestParam(name = "messageContent", required = false) String messageContent) {
+        SchedulesMessageModel messageModel = messageRepository.findById(messageId).get();
+        if (messageTitle != null) {
+            messageModel.setMessageTitle(messageTitle);
+        }
+        if (messageContent != null) {
+            messageModel.setMessageContent(messageContent);
+        }
+        messageRepository.save(messageModel);
+        return "Message Updated";
+    }
+
+    @DeleteMapping("/delete/{messageId}")
+    public String deleteSmsMessage(@PathVariable("messageId") String messageId) {
+        SchedulesMessageModel messageModel = messageRepository.findById(messageId).get();
+        messageRepository.delete(messageModel);
+        return "Message Removed";
     }
 
 
