@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'org.springframework.boot' version '3.2.5'
 }
 
 group = 'org.example'
@@ -25,4 +26,10 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'org.example.SchedulesAPIApplication'
+    }
 }
