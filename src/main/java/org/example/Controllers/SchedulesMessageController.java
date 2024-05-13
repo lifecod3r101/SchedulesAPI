@@ -8,12 +8,16 @@ import com.twilio.type.PhoneNumber;
 import org.example.Misc.AppStuff;
 import org.example.Models.SchedulesMessageModel;
 import org.example.Models.SchedulesTeamMessagesModel;
+import org.example.Models.SchedulesTeamModel;
 import org.example.Repositories.SchedulesMessageRepository;
 import org.example.Repositories.SchedulesTeamMessageRepository;
 import org.example.Repositories.SchedulesTeamRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/message")
@@ -93,5 +97,13 @@ public class SchedulesMessageController {
         return "Message Removed";
     }
 
+    @GetMapping("/getAll")
+    public List<SchedulesMessageModel> getAllMessages() {
+        List<SchedulesMessageModel> messageModelsList = new ArrayList<>();
+        for (SchedulesMessageModel model : messageRepository.findAll()) {
+            messageModelsList.add(model);
+        }
+        return messageModelsList;
+    }
 
 }

@@ -1,9 +1,13 @@
 package org.example.Controllers;
 
+import org.example.Models.SchedulesRolesModel;
 import org.example.Models.SchedulesTeamModel;
 import org.example.Repositories.SchedulesTeamRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/team")
@@ -50,5 +54,14 @@ public class SchedulesTeamController {
     public String removeTeamMember(@PathVariable("userId") String userId) {
         teamRepository.deleteById(userId);
         return "Team member removed";
+    }
+
+    @GetMapping("/getAll")
+    public List<SchedulesTeamModel> getAllTeamMembers() {
+        List<SchedulesTeamModel> teamMemberModelsList = new ArrayList<>();
+        for (SchedulesTeamModel model : teamRepository.findAll()) {
+            teamMemberModelsList.add(model);
+        }
+        return teamMemberModelsList;
     }
 }

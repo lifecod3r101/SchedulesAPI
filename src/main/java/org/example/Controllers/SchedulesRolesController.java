@@ -7,6 +7,9 @@ import org.example.Repositories.SchedulesTeamRolesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @RestController
 @RequestMapping("/roles")
 public class SchedulesRolesController {
@@ -48,5 +51,14 @@ public class SchedulesRolesController {
         teamRoleModel.setUserId(userId);
         teamRolesRepository.save(teamRoleModel);
         return "User assigned to role";
+    }
+
+    @GetMapping("/getAll")
+    public List<SchedulesRolesModel> getAllRoles() {
+        List<SchedulesRolesModel> rolesModelsList = new ArrayList<>();
+        for (SchedulesRolesModel model : rolesRepository.findAll()) {
+            rolesModelsList.add(model);
+        }
+        return rolesModelsList;
     }
 }
