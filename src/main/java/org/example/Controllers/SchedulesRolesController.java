@@ -1,14 +1,21 @@
 package org.example.Controllers;
 
+import jakarta.validation.ConstraintViolationException;
 import org.example.Models.SchedulesRolesModel;
 import org.example.Models.SchedulesTeamRoleModel;
 import org.example.Repositories.SchedulesRolesRepository;
 import org.example.Repositories.SchedulesTeamRolesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/roles")
@@ -19,11 +26,17 @@ public class SchedulesRolesController {
     SchedulesTeamRolesRepository teamRolesRepository;
 
     @PostMapping("/add")
-    public String addRole(@RequestParam("roleName") String roleName) {
+    public ResponseEntity<String> addRole(@RequestParam("roleName") String roleName) {
         SchedulesRolesModel schedulesRolesModel = new SchedulesRolesModel();
         schedulesRolesModel.setRoleName(roleName);
-        rolesRepository.save(schedulesRolesModel);
-        return "Role added";
+        List<String> errors = new ArrayList<String>();
+        try {
+            rolesRepository.save(schedulesRolesModel);
+            return ResponseEntity.ok("Role added");
+        } catch (ConstraintViolationException e) {
+            System.out.println(e.getConstraintViolations());
+            return ResponseEntity.ok("Something went wrong. Try again later");
+        }
     }
 
     @GetMapping("/find/{roleId}")
@@ -60,5 +73,18 @@ public class SchedulesRolesController {
             rolesModelsList.add(model);
         }
         return rolesModelsList;
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Map<String, String> handleValidationExceptions(
+            MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return errors;
     }
 }

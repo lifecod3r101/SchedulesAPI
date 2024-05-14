@@ -1,6 +1,9 @@
 package org.example.Models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 import java.util.List;
 
@@ -12,12 +15,17 @@ public class SchedulesTeamModel {
     private String userId;
 
     @Column(name = "username")
+    @NotBlank
     private String userName;
     @Column(name = "useremail")
+    @NotBlank
+    @Pattern(regexp = "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\\\.[A-Z]{2,6}$", message = "Email must be in the format of example@example.com")
     private String userEmail;
     @Column(name = "userbirthdate")
+    @NotBlank
     private String userBirthDate;
     @Column(name = "userphonenumber")
+    @NotBlank
     private String userPhoneNumber;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)

@@ -1,6 +1,7 @@
 package org.example.Models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "schedulesmessages")
@@ -10,8 +11,10 @@ public class SchedulesMessageModel {
     private String messageId;
 
     @Column(name = "messagetitle")
+    @NotBlank
     private String messageTitle;
     @Column(name = "messagecontent")
+    @NotBlank
     private String messageContent;
 
     public String getMessageId() {

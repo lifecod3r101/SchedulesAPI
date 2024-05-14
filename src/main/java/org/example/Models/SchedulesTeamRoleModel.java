@@ -1,6 +1,7 @@
 package org.example.Models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "schedulesteammembersroles")
@@ -10,9 +11,11 @@ public class SchedulesTeamRoleModel {
     private String id;
 
     @Column(name = "userid")
+    @NotBlank
     private String userId;
 
     @Column(name = "roleid")
+    @NotBlank
     private String roleId;
 
     public String getId() {
