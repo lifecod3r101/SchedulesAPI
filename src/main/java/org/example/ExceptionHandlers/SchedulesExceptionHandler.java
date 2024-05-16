@@ -1,36 +1,35 @@
 package org.example.ExceptionHandlers;
 
+import com.mysql.cj.xdevapi.JsonArray;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Path;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
-@ControllerAdvice
-@RestController
+@RestControllerAdvice
 public class SchedulesExceptionHandler extends ResponseEntityExceptionHandler {
-    @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        Map<String, Object> responseBody = new LinkedHashMap<>();
-        responseBody.put("timestamp", new Date());
-        responseBody.put("status", status.value());
+    @ExceptionHandler({ConstraintViolationException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    protected ResponseEntity<Object> handleConstraintViolationException(
+            ConstraintViolationException e) {
+        List<SchedulesErrorResponse> errorResponseList = new ArrayList<>();
+        SchedulesErrorResponse errorResponse = new SchedulesErrorResponse();
 
-        List<String> errors = ex.getBindingResult().getFieldErrors()
-                .stream()
-                .map(x -> x.getDefaultMessage())
-                .collect(Collectors.toList());
-
-        responseBody.put("errors", errors);
-
-        return new ResponseEntity<>(responseBody, headers, status);
+        for (ConstraintViolation<?> constraintViolation : e.getConstraintViolations()) {
+            errorResponse.setErrorField(constraintViolation.getPropertyPath().toString());
+            errorResponse.setErrorMessage(constraintViolation.getMessage());
+            errorResponseList.add(errorResponse);
+        }
+        return new ResponseEntity<>(errorResponseList, HttpStatus.BAD_REQUEST);
     }
 }

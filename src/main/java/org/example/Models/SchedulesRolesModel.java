@@ -2,6 +2,7 @@ package org.example.Models;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "schedulesroles")
@@ -11,7 +12,8 @@ public class SchedulesRolesModel {
     private String roleId;
 
     @Column(name = "rolename")
-    @NotBlank
+    @NotBlank(message = "Sorry. This is required")
+    @NotNull(message = "Sorry. This is required")
     private String roleName;
 
     public String getRoleId() {

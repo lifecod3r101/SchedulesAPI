@@ -5,6 +5,7 @@ import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.twiml.MessagingResponse;
 import com.twilio.twiml.messaging.Body;
 import com.twilio.type.PhoneNumber;
+import jakarta.validation.Valid;
 import org.example.Misc.AppStuff;
 import org.example.Models.SchedulesMessageModel;
 import org.example.Models.SchedulesTeamMessagesModel;
@@ -14,6 +15,9 @@ import org.example.Repositories.SchedulesTeamMessageRepository;
 import org.example.Repositories.SchedulesTeamRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -69,12 +73,12 @@ public class SchedulesMessageController {
     }
 
     @PostMapping("/store")
-    public String storeSmsMessage(@RequestParam("messageTitle") String messageTitle, @RequestParam("messageString") String messageString) {
+    public ResponseEntity<String> storeSmsMessage(@Valid @RequestParam("messageTitle") String messageTitle, @RequestParam("messageString") String messageString, @ModelAttribute SchedulesTeamModel teamModel, BindingResult bindingResult) {
         SchedulesMessageModel messageModel = new SchedulesMessageModel();
         messageModel.setMessageTitle(messageTitle);
         messageModel.setMessageContent(messageString);
         messageRepository.save(messageModel);
-        return "Message Saved";
+        return ResponseEntity.status(HttpStatus.OK).body("Message Saved");
     }
 
     @PatchMapping("/update/{messageId}")

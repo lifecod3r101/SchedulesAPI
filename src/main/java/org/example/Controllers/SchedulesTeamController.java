@@ -1,9 +1,13 @@
 package org.example.Controllers;
 
+import jakarta.validation.Valid;
 import org.example.Models.SchedulesRolesModel;
 import org.example.Models.SchedulesTeamModel;
 import org.example.Repositories.SchedulesTeamRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -16,14 +20,14 @@ public class SchedulesTeamController {
     SchedulesTeamRepository teamRepository;
 
     @PostMapping("/add")
-    public String addTeamMember(@RequestParam("teamMemberName") String memberName, @RequestParam("teamMemberEmail") String memberEmail, @RequestParam("teamMemberBirthDate") String memberBirthDate, @RequestParam("teamMemberPhoneNumber") String memberPhoneNumber) {
+    public ResponseEntity<String> addTeamMember(@Valid @RequestParam("teamMemberName") String memberName, @RequestParam("teamMemberEmail") String memberEmail, @RequestParam("teamMemberBirthDate") String memberBirthDate, @RequestParam("teamMemberPhoneNumber") String memberPhoneNumber, @ModelAttribute SchedulesTeamModel teamModel, BindingResult bindingResult) {
         SchedulesTeamModel schedulesTeamModel = new SchedulesTeamModel();
         schedulesTeamModel.setUserName(memberName);
         schedulesTeamModel.setUserEmail(memberEmail);
         schedulesTeamModel.setUserBirthDate(memberBirthDate);
         schedulesTeamModel.setUserPhoneNumber(memberPhoneNumber);
         teamRepository.save(schedulesTeamModel);
-        return "Team member saved";
+        return ResponseEntity.status(HttpStatus.OK).body("Team member saved");
     }
 
     @GetMapping("/find/{userId}")
