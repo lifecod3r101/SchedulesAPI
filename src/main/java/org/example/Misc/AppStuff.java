@@ -1,6 +1,6 @@
 package org.example.Misc;
 
-import com.auth0.jwt.algorithms.Algorithm;
+//import com.auth0.jwt.algorithms.Algorithm;
 import com.twilio.Twilio;
 
 public class AppStuff {
@@ -9,8 +9,8 @@ public class AppStuff {
         Twilio.init(accountSid, accountAuthToken);
     }
 
-    public Algorithm initialiseJsonWebTokenAlgorithm(){
-        return Algorithm.HMAC256("SchedulesAPI");
-    }
+//    public Algorithm initialiseJsonWebTokenAlgorithm(){
+//        return Algorithm.HMAC256("SchedulesAPI");
+//    }
 
 }

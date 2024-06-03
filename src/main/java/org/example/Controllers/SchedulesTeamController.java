@@ -20,14 +20,14 @@ public class SchedulesTeamController {
     SchedulesTeamRepository teamRepository;
 
     @PostMapping("/add")
-    public ResponseEntity<String> addTeamMember(@Valid @RequestParam("teamMemberName") String memberName, @RequestParam("teamMemberEmail") String memberEmail, @RequestParam("teamMemberBirthDate") String memberBirthDate, @RequestParam("teamMemberPhoneNumber") String memberPhoneNumber, @ModelAttribute SchedulesTeamModel teamModel, BindingResult bindingResult) {
+    public ResponseEntity<SchedulesTeamModel> addTeamMember(@Valid @RequestParam("teamMemberName") String memberName, @RequestParam("teamMemberEmail") String memberEmail, @RequestParam("teamMemberBirthDate") String memberBirthDate, @RequestParam("teamMemberPhoneNumber") String memberPhoneNumber, @ModelAttribute SchedulesTeamModel teamModel, BindingResult bindingResult) {
         SchedulesTeamModel schedulesTeamModel = new SchedulesTeamModel();
         schedulesTeamModel.setUserName(memberName);
         schedulesTeamModel.setUserEmail(memberEmail);
         schedulesTeamModel.setUserBirthDate(memberBirthDate);
         schedulesTeamModel.setUserPhoneNumber(memberPhoneNumber);
         teamRepository.save(schedulesTeamModel);
-        return ResponseEntity.status(HttpStatus.OK).body("Team member saved");
+        return ResponseEntity.status(HttpStatus.OK).body(schedulesTeamModel);
     }
 
     @GetMapping("/find/{userId}")

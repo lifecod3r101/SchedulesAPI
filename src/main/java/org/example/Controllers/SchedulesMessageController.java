@@ -73,12 +73,12 @@ public class SchedulesMessageController {
     }
 
     @PostMapping("/store")
-    public ResponseEntity<String> storeSmsMessage(@Valid @RequestParam("messageTitle") String messageTitle, @RequestParam("messageString") String messageString, @ModelAttribute SchedulesTeamModel teamModel, BindingResult bindingResult) {
+    public ResponseEntity<SchedulesMessageModel> storeSmsMessage(@Valid @RequestParam("messageTitle") String messageTitle, @RequestParam("messageString") String messageString, @ModelAttribute SchedulesTeamModel teamModel, BindingResult bindingResult) {
         SchedulesMessageModel messageModel = new SchedulesMessageModel();
         messageModel.setMessageTitle(messageTitle);
         messageModel.setMessageContent(messageString);
         messageRepository.save(messageModel);
-        return ResponseEntity.status(HttpStatus.OK).body("Message Saved");
+        return ResponseEntity.status(HttpStatus.OK).body(messageModel);
     }
 
     @PatchMapping("/update/{messageId}")

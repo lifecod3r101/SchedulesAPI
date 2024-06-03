@@ -29,11 +29,11 @@ public class SchedulesRolesController {
     SchedulesTeamRolesRepository teamRolesRepository;
 
     @PostMapping("/add")
-    public ResponseEntity<String> addRole(@Valid @RequestParam("roleName") String roleName, @ModelAttribute SchedulesRolesModel rolesModel, BindingResult bindingResult) {
+    public ResponseEntity<SchedulesRolesModel> addRole(@Valid @RequestParam("roleName") String roleName, @ModelAttribute SchedulesRolesModel rolesModel, BindingResult bindingResult) {
         SchedulesRolesModel schedulesRolesModel = new SchedulesRolesModel();
         schedulesRolesModel.setRoleName(roleName);
         rolesRepository.save(schedulesRolesModel);
-        return ResponseEntity.status(HttpStatus.OK).body("Role added");
+        return ResponseEntity.status(HttpStatus.OK).body(schedulesRolesModel);
     }
 
     @GetMapping("/find/{roleId}")
