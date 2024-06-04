@@ -36,7 +36,7 @@ public class SchedulesTeamController {
     }
 
     @PatchMapping("/update/{userId}")
-    public String updateTeamMember(@PathVariable("userId") String userId, @RequestParam(name = "userBirthDate", required = false) String userBirthDate, @RequestParam(name = "userEmail", required = false) String userEmail, @RequestParam(name = "userName", required = false) String userName, @RequestParam(name = "userPhoneNumber", required = false) String userPhoneNumber) {
+    public ResponseEntity<SchedulesTeamModel> updateTeamMember(@PathVariable("userId") String userId, @RequestParam(name = "userBirthDate", required = false) String userBirthDate, @RequestParam(name = "userEmail", required = false) String userEmail, @RequestParam(name = "userName", required = false) String userName, @RequestParam(name = "userPhoneNumber", required = false) String userPhoneNumber) {
         SchedulesTeamModel teamModel = teamRepository.findById(userId).get();
         if (userBirthDate != null) {
             teamModel.setUserBirthDate(userBirthDate);
@@ -51,7 +51,7 @@ public class SchedulesTeamController {
             teamModel.setUserPhoneNumber(userPhoneNumber);
         }
         teamRepository.save(teamModel);
-        return "Member updated";
+        return ResponseEntity.status(HttpStatus.OK).body(teamModel);
     }
 
     @DeleteMapping("/delete/{userId}")
