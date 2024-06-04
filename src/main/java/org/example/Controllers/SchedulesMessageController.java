@@ -82,7 +82,7 @@ public class SchedulesMessageController {
     }
 
     @PatchMapping("/update/{messageId}")
-    public String updateSmsMessage(@PathVariable("messageId") String messageId, @RequestParam(name = "messageTitle", required = false) String messageTitle, @RequestParam(name = "messageContent", required = false) String messageContent) {
+    public ResponseEntity<SchedulesMessageModel> updateSmsMessage(@PathVariable("messageId") String messageId, @RequestParam(name = "messageTitle", required = false) String messageTitle, @RequestParam(name = "messageContent", required = false) String messageContent) {
         SchedulesMessageModel messageModel = messageRepository.findById(messageId).get();
         if (messageTitle != null) {
             messageModel.setMessageTitle(messageTitle);
@@ -91,7 +91,7 @@ public class SchedulesMessageController {
             messageModel.setMessageContent(messageContent);
         }
         messageRepository.save(messageModel);
-        return "Message Updated";
+        return ResponseEntity.status(HttpStatus.OK).body(messageModel);
     }
 
     @DeleteMapping("/delete/{messageId}")

@@ -19,7 +19,7 @@ public class SchedulesTeamModel {
     private String userName;
     @Column(name = "useremail")
     @NotBlank
-    @Pattern(regexp = "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\\\.[A-Z]{2,6}$", message = "Email must be in the format of example@example.com")
+    @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}(?:\\.[a-zA-Z]{2,})?$", message = "Email must be in the format of example@example.com")
     private String userEmail;
     @Column(name = "userbirthdate")
     @NotBlank

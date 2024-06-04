@@ -42,10 +42,10 @@ public class SchedulesRolesController {
     }
 
     @PatchMapping("/update/{roleId}")
-    public String updateRole(@PathVariable("roleId") String roleId, @RequestParam("roleName") String roleName) {
+    public ResponseEntity<SchedulesRolesModel> updateRole(@PathVariable("roleId") String roleId, @RequestParam("roleName") String roleName) {
         SchedulesRolesModel rolesModel = rolesRepository.findById(roleId).get();
         rolesModel.setRoleName(roleName);
-        return "Role updated";
+        return ResponseEntity.status(HttpStatus.OK).body(rolesModel);
     }
 
     @DeleteMapping("/delete/{roleId}")
