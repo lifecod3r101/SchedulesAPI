@@ -1,31 +1,42 @@
 package org.example.Controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import org.example.Models.SchedulesRolesModel;
 import org.example.Models.SchedulesTeamModel;
+import org.example.Repositories.SchedulesRolesRepository;
 import org.example.Repositories.SchedulesTeamRepository;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("/team")
 public class SchedulesTeamController {
     @Autowired
     SchedulesTeamRepository teamRepository;
+    @Autowired
+    SchedulesRolesRepository rolesRepository;
 
     @PostMapping("/add")
-    public ResponseEntity<SchedulesTeamModel> addTeamMember(@Valid @RequestParam("teamMemberName") String memberName, @RequestParam("teamMemberEmail") String memberEmail, @RequestParam("teamMemberBirthDate") String memberBirthDate, @RequestParam("teamMemberPhoneNumber") String memberPhoneNumber, @ModelAttribute SchedulesTeamModel teamModel, BindingResult bindingResult) {
+    public ResponseEntity<SchedulesTeamModel> addTeamMember(@Valid @RequestParam("teamMemberName") String memberName, @RequestParam("teamMemberEmail") String memberEmail, @RequestParam("teamMemberBirthDate") String memberBirthDate, @RequestParam("teamMemberPhoneNumber") String memberPhoneNumber, @RequestParam("teamMemberRoles") String[] memberRoles, @ModelAttribute SchedulesTeamModel teamModel, BindingResult bindingResult) {
         SchedulesTeamModel schedulesTeamModel = new SchedulesTeamModel();
         schedulesTeamModel.setUserName(memberName);
         schedulesTeamModel.setUserEmail(memberEmail);
         schedulesTeamModel.setUserBirthDate(memberBirthDate);
         schedulesTeamModel.setUserPhoneNumber(memberPhoneNumber);
+        for (String memberRoleEntry : memberRoles) {
+            if(rolesRepository.findById(memberRoleEntry).isPresent()) {
+                SchedulesRolesModel schedulesRolesModel = rolesRepository.findById(memberRoleEntry).get();
+                schedulesTeamModel.getRoles().add(schedulesRolesModel);
+            }
+        }
         teamRepository.save(schedulesTeamModel);
         return ResponseEntity.status(HttpStatus.OK).body(schedulesTeamModel);
     }
@@ -68,4 +79,5 @@ public class SchedulesTeamController {
         }
         return teamMemberModelsList;
     }
+
 }

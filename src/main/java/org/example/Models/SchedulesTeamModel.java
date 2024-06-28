@@ -5,7 +5,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "schedulesteammembers")
@@ -28,17 +31,25 @@ public class SchedulesTeamModel {
     @NotBlank
     private String userPhoneNumber;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "schedulesteammembersmessages",
             joinColumns = @JoinColumn(name = "userid"),
             inverseJoinColumns = @JoinColumn(name = "messageid"))
     List<SchedulesMessageModel> messageModelList;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "schedulesteammembersroles",
-            joinColumns = @JoinColumn(name = "userid"),
-            inverseJoinColumns = @JoinColumn(name = "roleid"))
-    List<SchedulesRolesModel> teamRoleList;
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    Set<SchedulesRolesModel> roles = new HashSet<>();
+
+    public Set<SchedulesRolesModel> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<SchedulesRolesModel> roles) {
+        this.roles = roles;
+    }
 
     public String getUserId() {
         return userId;

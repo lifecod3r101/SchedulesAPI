@@ -3,6 +3,9 @@ package org.example.Models;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "schedulesmessages")
 public class SchedulesMessageModel {
@@ -16,6 +19,9 @@ public class SchedulesMessageModel {
     @Column(name = "messagecontent")
     @NotBlank
     private String messageContent;
+
+    @ManyToMany(fetch = FetchType.EAGER,mappedBy = "messageModelList")
+    List<SchedulesTeamModel> teamMessageList = new ArrayList<>();
 
     public String getMessageId() {
         return messageId;

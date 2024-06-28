@@ -41,6 +41,9 @@ dependencies {
 //    implementation 'org.springframework.boot:spring-boot-starter-security:3.2.5'
     // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-tomcat
     implementation 'org.springframework.boot:spring-boot-starter-tomcat:3.3.0'
+    // https://mvnrepository.com/artifact/org.json/json
+    implementation 'org.json:json:20231013'
+
 }
 
 test {

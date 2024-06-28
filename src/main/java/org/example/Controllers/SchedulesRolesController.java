@@ -1,17 +1,13 @@
 package org.example.Controllers;
 
-import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
 import org.example.Models.SchedulesRolesModel;
-import org.example.Models.SchedulesTeamRoleModel;
 import org.example.Repositories.SchedulesRolesRepository;
-import org.example.Repositories.SchedulesTeamRolesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,8 +21,6 @@ import java.util.Map;
 public class SchedulesRolesController {
     @Autowired
     SchedulesRolesRepository rolesRepository;
-    @Autowired
-    SchedulesTeamRolesRepository teamRolesRepository;
 
     @PostMapping("/add")
     public ResponseEntity<SchedulesRolesModel> addRole(@Valid @RequestParam("roleName") String roleName, @ModelAttribute SchedulesRolesModel rolesModel, BindingResult bindingResult) {
@@ -54,14 +48,6 @@ public class SchedulesRolesController {
         return "Role deleted";
     }
 
-    @PostMapping("/assignRole")
-    public String assignRole(@RequestParam("userId") String userId, @RequestParam("roleId") String roleId) {
-        SchedulesTeamRoleModel teamRoleModel = new SchedulesTeamRoleModel();
-        teamRoleModel.setRoleId(roleId);
-        teamRoleModel.setUserId(userId);
-        teamRolesRepository.save(teamRoleModel);
-        return "User assigned to role";
-    }
 
     @GetMapping("/getAll")
     public List<SchedulesRolesModel> getAllRoles() {
