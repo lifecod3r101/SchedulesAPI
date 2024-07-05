@@ -25,16 +25,18 @@ public class SchedulesTeamController {
     SchedulesRolesRepository rolesRepository;
 
     @PostMapping("/add")
-    public ResponseEntity<SchedulesTeamModel> addTeamMember(@Valid @RequestParam("teamMemberName") String memberName, @RequestParam("teamMemberEmail") String memberEmail, @RequestParam("teamMemberBirthDate") String memberBirthDate, @RequestParam("teamMemberPhoneNumber") String memberPhoneNumber, @RequestParam("teamMemberRoles") String[] memberRoles, @ModelAttribute SchedulesTeamModel teamModel, BindingResult bindingResult) {
+    public ResponseEntity<SchedulesTeamModel> addTeamMember(@Valid @RequestParam("teamMemberName") String memberName, @RequestParam("teamMemberEmail") String memberEmail, @RequestParam("teamMemberBirthDate") String memberBirthDate, @RequestParam("teamMemberPhoneNumber") String memberPhoneNumber, @RequestParam(name = "teamMemberRoles", required = false) String[] memberRoles, @ModelAttribute SchedulesTeamModel teamModel, BindingResult bindingResult) {
         SchedulesTeamModel schedulesTeamModel = new SchedulesTeamModel();
         schedulesTeamModel.setUserName(memberName);
         schedulesTeamModel.setUserEmail(memberEmail);
         schedulesTeamModel.setUserBirthDate(memberBirthDate);
         schedulesTeamModel.setUserPhoneNumber(memberPhoneNumber);
-        for (String memberRoleEntry : memberRoles) {
-            if(rolesRepository.findById(memberRoleEntry).isPresent()) {
-                SchedulesRolesModel schedulesRolesModel = rolesRepository.findById(memberRoleEntry).get();
-                schedulesTeamModel.getRoles().add(schedulesRolesModel);
+        if (memberRoles != null) {
+            for (String memberRoleEntry : memberRoles) {
+                if (rolesRepository.findById(memberRoleEntry).isPresent()) {
+                    SchedulesRolesModel schedulesRolesModel = rolesRepository.findById(memberRoleEntry).get();
+                    schedulesTeamModel.getRoles().add(schedulesRolesModel);
+                }
             }
         }
         teamRepository.save(schedulesTeamModel);

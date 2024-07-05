@@ -1,5 +1,6 @@
 package org.example.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -21,6 +22,7 @@ public class SchedulesRolesModel {
     @NotNull(message = "Sorry. This is required")
     private String roleName;
 
+    @JsonIgnoreProperties({"roles","messageHistory"})
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "schedulesteammembersroles",
             joinColumns = @JoinColumn(name = "role_id"),

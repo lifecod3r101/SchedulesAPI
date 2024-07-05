@@ -1,5 +1,6 @@
 package org.example.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 
@@ -20,8 +21,20 @@ public class SchedulesMessageModel {
     @NotBlank
     private String messageContent;
 
-    @ManyToMany(fetch = FetchType.EAGER,mappedBy = "messageModelList")
-    List<SchedulesTeamModel> teamMessageList = new ArrayList<>();
+    @JsonIgnoreProperties({"messageHistory"})
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "schedulesteammembersmessages",
+            joinColumns = @JoinColumn(name = "messageid"),
+            inverseJoinColumns = @JoinColumn(name = "userid"))
+    List<SchedulesTeamModel> messageRecipientHistory = new ArrayList<>();
+
+    public List<SchedulesTeamModel> getMessageRecipientHistory() {
+        return messageRecipientHistory;
+    }
+
+    public void setMessageRecipientHistory(List<SchedulesTeamModel> messageRecipientHistory) {
+        this.messageRecipientHistory = messageRecipientHistory;
+    }
 
     public String getMessageId() {
         return messageId;

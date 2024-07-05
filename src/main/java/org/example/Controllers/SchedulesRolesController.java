@@ -2,8 +2,11 @@ package org.example.Controllers;
 
 import jakarta.validation.Valid;
 import org.example.Models.SchedulesRolesModel;
+import org.example.Models.SchedulesTeamModel;
 import org.example.Repositories.SchedulesRolesRepository;
+import org.example.Repositories.SchedulesTeamRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -22,6 +25,9 @@ public class SchedulesRolesController {
     @Autowired
     SchedulesRolesRepository rolesRepository;
 
+    @Autowired
+    SchedulesTeamRepository teamRepository;
+
     @PostMapping("/add")
     public ResponseEntity<SchedulesRolesModel> addRole(@Valid @RequestParam("roleName") String roleName, @ModelAttribute SchedulesRolesModel rolesModel, BindingResult bindingResult) {
         SchedulesRolesModel schedulesRolesModel = new SchedulesRolesModel();
@@ -35,6 +41,8 @@ public class SchedulesRolesController {
         return rolesRepository.findById(roleId).get();
     }
 
+    @PostMapping("/assignRole")
+
     @PatchMapping("/update/{roleId}")
     public ResponseEntity<SchedulesRolesModel> updateRole(@PathVariable("roleId") String roleId, @RequestParam("roleName") String roleName) {
         SchedulesRolesModel rolesModel = rolesRepository.findById(roleId).get();
@@ -46,6 +54,19 @@ public class SchedulesRolesController {
     public String removeRole(@PathVariable("roleId") String roleId) {
         rolesRepository.deleteById(roleId);
         return "Role deleted";
+    }
+
+    @PostMapping("/addTeamMembers")
+    public ResponseEntity<SchedulesRolesModel> addTeamMemberToRole(@RequestParam("roleId") String roleId, @RequestParam("teamMemberId") String[] teamMemberIdList) {
+        SchedulesRolesModel schedulesRolesModel = rolesRepository.findById(roleId).get();
+        for (String teamMemberIdEntry : teamMemberIdList) {
+            if (teamRepository.findById(teamMemberIdEntry).isPresent()) {
+                SchedulesTeamModel schedulesTeamModel = teamRepository.findById(teamMemberIdEntry).get();
+                schedulesRolesModel.getTeam().add(schedulesTeamModel);
+            }
+        }
+        rolesRepository.save(schedulesRolesModel);
+        return ResponseEntity.status(HttpStatus.OK).body(schedulesRolesModel);
     }
 
 

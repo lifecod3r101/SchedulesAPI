@@ -8,6 +8,7 @@ import com.twilio.type.PhoneNumber;
 import jakarta.validation.Valid;
 import org.example.Misc.AppStuff;
 import org.example.Models.SchedulesMessageModel;
+import org.example.Models.SchedulesRolesModel;
 import org.example.Models.SchedulesTeamMessagesModel;
 import org.example.Models.SchedulesTeamModel;
 import org.example.Repositories.SchedulesMessageRepository;
@@ -45,16 +46,22 @@ public class SchedulesMessageController {
 
 
     @PostMapping("/send")
-    public String sendSmsMessage(@RequestParam("recipientId") String recipientUserId, @RequestParam("userMessageId") String messageId) {
+    public ResponseEntity<?> sendSmsMessage(@RequestParam("recipientId") String[] recipientUserIdList, @RequestParam("userMessageId") String messageId) {
         appStuff.initialiseTwilioService(twilioSid, twilioAuthToken);
-        String userPhoneNumber = teamRepository.findById(recipientUserId).get().getUserPhoneNumber();
-        String sendingMessageContent = messageRepository.findById(messageId).get().getMessageContent();
-        SchedulesTeamMessagesModel teamMessagesModel = new SchedulesTeamMessagesModel();
-        teamMessagesModel.setMessageId(messageId);
-        teamMessagesModel.setUserId(recipientUserId);
-        teamMessageRepository.save(teamMessagesModel);
-        Message message = Message.creator(new PhoneNumber("+".concat(userPhoneNumber)), new PhoneNumber("+".concat(sendingPhoneNumber)), sendingMessageContent).create();
-        return message.getBody();
+        ArrayList<Message> messagesList = new ArrayList<>();
+        for (String recipientUserId : recipientUserIdList) {
+            if (teamRepository.findById(recipientUserId).isPresent() && messageRepository.findById(messageId).isPresent()) {
+                String userPhoneNumber = teamRepository.findById(recipientUserId).get().getUserPhoneNumber();
+                String sendingMessageContent = messageRepository.findById(messageId).get().getMessageContent();
+                SchedulesTeamMessagesModel teamMessagesModel = new SchedulesTeamMessagesModel();
+                teamMessagesModel.setMessageId(messageId);
+                teamMessagesModel.setUserId(recipientUserId);
+                teamMessageRepository.save(teamMessagesModel);
+                Message message = Message.creator(new PhoneNumber("+".concat(userPhoneNumber)), new PhoneNumber("+".concat(sendingPhoneNumber)), sendingMessageContent).create();
+                messagesList.add(message);
+            }
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(messagesList);
     }
 
     //Method is to be revisited

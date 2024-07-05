@@ -1,5 +1,6 @@
 package org.example.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotBlank;
@@ -31,17 +32,28 @@ public class SchedulesTeamModel {
     @NotBlank
     private String userPhoneNumber;
 
+
+    @JsonIgnoreProperties({"messageRecipientHistory"})
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "schedulesteammembersmessages",
             joinColumns = @JoinColumn(name = "userid"),
             inverseJoinColumns = @JoinColumn(name = "messageid"))
-    List<SchedulesMessageModel> messageModelList;
+    List<SchedulesMessageModel> messageHistory;
 
+    @JsonIgnoreProperties({"team"})
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "schedulesteammembersroles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     Set<SchedulesRolesModel> roles = new HashSet<>();
+
+    public List<SchedulesMessageModel> getMessageHistory() {
+        return messageHistory;
+    }
+
+    public void setMessageHistory(List<SchedulesMessageModel> messageHistory) {
+        this.messageHistory = messageHistory;
+    }
 
     public Set<SchedulesRolesModel> getRoles() {
         return roles;
