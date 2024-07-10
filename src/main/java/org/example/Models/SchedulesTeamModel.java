@@ -47,6 +47,21 @@ public class SchedulesTeamModel {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     Set<SchedulesRolesModel> roles = new HashSet<>();
 
+    @JsonIgnoreProperties({"scheduleTeamMemberList"})
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "schedulesrolemembers",
+            inverseJoinColumns = @JoinColumn(name = "userid"),
+            joinColumns = @JoinColumn(name = "rolescheduleid"))
+    List<ScheduleModel> scheduleHistoryList;
+
+    public List<ScheduleModel> getScheduleHistoryList() {
+        return scheduleHistoryList;
+    }
+
+    public void setScheduleHistoryList(List<ScheduleModel> scheduleHistoryList) {
+        this.scheduleHistoryList = scheduleHistoryList;
+    }
+
     public List<SchedulesMessageModel> getMessageHistory() {
         return messageHistory;
     }

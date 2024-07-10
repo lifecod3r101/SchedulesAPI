@@ -10,7 +10,6 @@ public class SchedulesTeamMessagesModel {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-
     @Column(name = "userid")
     @NotBlank
     String userId;
