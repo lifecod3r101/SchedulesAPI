@@ -2,12 +2,14 @@ package org.example.Models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.UpdateTimestamp;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.*;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @Table(name = "roleschedule")
@@ -20,6 +22,8 @@ public class ScheduleModel {
     String roleScheduleName;
     @Column(name = "rolescheduledate")
     String roleScheduleDateTime;
+    @Column(name = "roleschedulepeople")
+    String roleSchedulePeople;
     @CreationTimestamp
     Instant roleScheduleCreateTime;
     @UpdateTimestamp
@@ -31,6 +35,14 @@ public class ScheduleModel {
             inverseJoinColumns = @JoinColumn(name = "rolescheduleid"),
             joinColumns = @JoinColumn(name = "userid"))
     List<SchedulesTeamModel> scheduleTeamMemberList;
+
+    public String getRoleSchedulePeople() {
+        return roleSchedulePeople;
+    }
+
+    public void setRoleSchedulePeople(String roleSchedulePeople) {
+        this.roleSchedulePeople = roleSchedulePeople;
+    }
 
     public ScheduleModel() {
     }

@@ -6,6 +6,8 @@ import jakarta.validation.Valid;
 import org.example.Misc.AppStuff;
 import org.example.Models.*;
 import org.example.Repositories.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.Query;
@@ -16,10 +18,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/roles")
@@ -100,6 +99,15 @@ public class SchedulesRolesController {
         return rolesModelsList;
     }
 
+    @GetMapping("/getAllSchedules")
+    public ResponseEntity<List<ScheduleModel>> getAllSchedules() {
+        List<ScheduleModel> schedulesList = new ArrayList<>();
+        for (ScheduleModel model : scheduleRepository.findAll()) {
+            schedulesList.add(model);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(schedulesList);
+    }
+
     @PostMapping("/buildSchedule")
     public ResponseEntity<ScheduleModel> createSchedule(@RequestParam("roleScheduleName") String roleScheduleName, @RequestParam("roleScheduleDateTime") String roleScheduleDateTime, @RequestParam("selectedRoleMembers") String[] desiredRoleMembers, @RequestParam("messageId") String messageId) {
         appStuff.initialiseTwilioService(twilioSid, twilioAuthToken);
@@ -126,9 +134,27 @@ public class SchedulesRolesController {
     @PostMapping("/accept")
     public ResponseEntity<ScheduleModel> acceptScheduleRequest(@RequestParam("scheduleId") String scheduleId, @RequestParam("requestedUserId") String requestedUserId) {
         ScheduleModel scheduleModel = null;
+        Map<String, Object> acceptedScheduleModel = new HashMap<>();
         if (scheduleRepository.findById(scheduleId).isPresent() && teamRepository.findById(requestedUserId).isPresent()) {
             scheduleModel = scheduleRepository.findById(scheduleId).get();
             scheduleModel.getScheduleTeamMemberList().add(teamRepository.findById(requestedUserId).get());
+            JSONArray allPeopleArray = new JSONArray();
+            if (scheduleModel.getRoleSchedulePeople() != null) {
+                JSONArray originalPeopleArray = new JSONArray(scheduleModel.getRoleSchedulePeople());
+                acceptedScheduleModel.put("acceptedUserId", requestedUserId);
+                acceptedScheduleModel.put("selectedRoleId", scheduleId);
+                JSONObject newPersonObject=new JSONObject(acceptedScheduleModel);
+                originalPeopleArray.put(newPersonObject);
+                String finalScheduleObject = originalPeopleArray.toString();
+                scheduleModel.setRoleSchedulePeople(finalScheduleObject);
+            } else {
+                acceptedScheduleModel.put("acceptedUserId", requestedUserId);
+                acceptedScheduleModel.put("selectedRoleId", scheduleId);
+                JSONObject scheduleObject = new JSONObject(acceptedScheduleModel);
+                allPeopleArray.put(scheduleObject);
+                String finalScheduleObject = allPeopleArray.toString();
+                scheduleModel.setRoleSchedulePeople(finalScheduleObject);
+            }
             scheduleRepository.save(scheduleModel);
         }
         return ResponseEntity.status(HttpStatus.OK).body(scheduleModel);
