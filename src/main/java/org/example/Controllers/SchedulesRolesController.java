@@ -1,7 +1,15 @@
 package org.example.Controllers;
 
+import com.infobip.ApiCallback;
+import com.infobip.ApiException;
+import com.infobip.api.SmsApi;
+import com.infobip.model.SmsAdvancedTextualRequest;
+import com.infobip.model.SmsDestination;
+import com.infobip.model.SmsResponse;
+import com.infobip.model.SmsTextualMessage;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.example.Misc.AppStuff;
 import org.example.Models.*;
@@ -17,7 +25,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.text.MessageFormat;
 import java.util.*;
 
 @RestController
@@ -47,6 +57,13 @@ public class SchedulesRolesController {
     @Value("${twilio.property.sending_phone_number}")
     String sendingPhoneNumber;
     AppStuff appStuff = new AppStuff();
+
+    @Value("${infobip.property.api_key}")
+    String infobipApiKey;
+
+    @Value("${infobip.property.base_url}")
+    String infobipBaseUrl;
+
 
     @PostMapping("/add")
     public ResponseEntity<SchedulesRolesModel> addRole(@Valid @RequestParam("roleName") String roleName, @ModelAttribute SchedulesRolesModel rolesModel, BindingResult bindingResult) {
@@ -108,48 +125,82 @@ public class SchedulesRolesController {
         return ResponseEntity.status(HttpStatus.OK).body(schedulesList);
     }
 
+    public String getAppBaseUrl() {
+        return ServletUriComponentsBuilder.fromCurrentContextPath().toUriString();
+    }
+
     @PostMapping("/buildSchedule")
     public ResponseEntity<ScheduleModel> createSchedule(@RequestParam("roleScheduleName") String roleScheduleName, @RequestParam("roleScheduleDateTime") String roleScheduleDateTime, @RequestParam("selectedRoleMembers") String[] desiredRoleMembers, @RequestParam("messageId") String messageId) {
-        appStuff.initialiseTwilioService(twilioSid, twilioAuthToken);
+
+        for (String recipientUserId : desiredRoleMembers) {
+            System.out.println(recipientUserId.substring(recipientUserId.indexOf(";") + 1));
+        }
+        SmsApi smsApi = new SmsApi(appStuff.initialiseInfobipService(infobipApiKey, infobipBaseUrl));
         ScheduleModel scheduleModel = new ScheduleModel();
         scheduleModel.setRoleScheduleName(roleScheduleName);
         scheduleModel.setRoleScheduleDateTime(roleScheduleDateTime);
-        ArrayList<Message> messagesList = new ArrayList<>();
+        String nameTarget = "{{name}}";
+        String roleTarget = "{{role}}";
+        String dateTarget = "{{date}}";
+        String sendingMessageContent = messageRepository.findById(messageId).get().getMessageContent();
         for (String recipientUserId : desiredRoleMembers) {
             if (teamRepository.findById(recipientUserId).isPresent() && messageRepository.findById(messageId).isPresent()) {
-                String userPhoneNumber = teamRepository.findById(recipientUserId).get().getUserPhoneNumber();
-                String sendingMessageContent = messageRepository.findById(messageId).get().getMessageContent();
                 SchedulesTeamMessagesModel teamMessagesModel = new SchedulesTeamMessagesModel();
                 teamMessagesModel.setMessageId(messageId);
-                teamMessagesModel.setUserId(recipientUserId);
+                teamMessagesModel.setUserId(recipientUserId.substring(0, recipientUserId.indexOf(";")));
                 teamMessageRepository.save(teamMessagesModel);
-                Message message = Message.creator(new PhoneNumber("+".concat(userPhoneNumber)), new PhoneNumber("+".concat(sendingPhoneNumber)), sendingMessageContent).create();
-                messagesList.add(message);
             }
         }
         scheduleRepository.save(scheduleModel);
+        for (String recipientUserId : desiredRoleMembers) {
+            if (teamRepository.findById(recipientUserId.substring(0, recipientUserId.indexOf(";"))).isPresent() && messageRepository.findById(messageId).isPresent() && rolesRepository.findById(recipientUserId.substring(recipientUserId.indexOf(";") + 1)).isPresent()) {
+                SchedulesTeamModel schedulesTeamModel = teamRepository.findById(recipientUserId.substring(0, recipientUserId.indexOf(";"))).get();
+                SmsDestination userDestination = new SmsDestination();
+                String userPhoneNumber = teamRepository.findById(recipientUserId.substring(0, recipientUserId.indexOf(";"))).get().getUserPhoneNumber();
+                userDestination.setTo(userPhoneNumber);
+                String finalNameReplaced = sendingMessageContent.replace(nameTarget, teamRepository.findById(recipientUserId.substring(0, recipientUserId.indexOf(";"))).get().getUserName());
+                String finalDateReplaced = finalNameReplaced.replace(dateTarget, scheduleModel.getRoleScheduleDateTime());
+                String finalRoleReplaced = finalDateReplaced.replace(roleTarget, rolesRepository.findById(recipientUserId.substring(recipientUserId.indexOf(";") + 1)).get().getRoleName());
+                SmsTextualMessage smsMessage = new SmsTextualMessage().from("TeamDream").addDestinationsItem(new SmsDestination().to(userPhoneNumber)).text(finalRoleReplaced);
+                SmsAdvancedTextualRequest smsMessageRequest = new SmsAdvancedTextualRequest()
+                        .messages(List.of(smsMessage));
+                smsApi.sendSmsMessage(smsMessageRequest).executeAsync(new ApiCallback<>() {
+                    @Override
+                    public void onSuccess(SmsResponse result, int responseStatusCode, Map<String, List<String>> responseHeaders) {
+                        System.out.println("Message Sent");
+                    }
+
+                    @Override
+                    public void onFailure(ApiException exception, int responseStatusCode, Map<String, List<String>> responseHeaders) {
+                        System.out.println("Message Failed to be Sent");
+                    }
+                });
+                acceptScheduleRequest(scheduleModel.getRoleScheduleId(), recipientUserId.substring(0, recipientUserId.indexOf(";")), recipientUserId.substring(recipientUserId.indexOf(";") + 1));
+            }
+        }
         return ResponseEntity.status(HttpStatus.OK).body(scheduleModel);
     }
 
-    @PostMapping("/accept")
-    public ResponseEntity<ScheduleModel> acceptScheduleRequest(@RequestParam("scheduleId") String scheduleId, @RequestParam("requestedUserId") String requestedUserId) {
+    //    @PostMapping("/accept")
+    public void /*ResponseEntity<ScheduleModel>*/ acceptScheduleRequest(/*@RequestParam("scheduleId") */String scheduleId, /*@RequestParam("requestedUserId") */String requestedUserId, String roleId) {
         ScheduleModel scheduleModel = null;
+        List<SchedulesTeamModel> allMembers = new ArrayList<>();
         Map<String, Object> acceptedScheduleModel = new HashMap<>();
         if (scheduleRepository.findById(scheduleId).isPresent() && teamRepository.findById(requestedUserId).isPresent()) {
             scheduleModel = scheduleRepository.findById(scheduleId).get();
-            scheduleModel.getScheduleTeamMemberList().add(teamRepository.findById(requestedUserId).get());
+            allMembers.add(teamRepository.findById(requestedUserId).get());
             JSONArray allPeopleArray = new JSONArray();
             if (scheduleModel.getRoleSchedulePeople() != null) {
                 JSONArray originalPeopleArray = new JSONArray(scheduleModel.getRoleSchedulePeople());
                 acceptedScheduleModel.put("acceptedUserId", requestedUserId);
-                acceptedScheduleModel.put("selectedRoleId", scheduleId);
-                JSONObject newPersonObject=new JSONObject(acceptedScheduleModel);
+                acceptedScheduleModel.put("selectedRoleId", roleId);
+                JSONObject newPersonObject = new JSONObject(acceptedScheduleModel);
                 originalPeopleArray.put(newPersonObject);
                 String finalScheduleObject = originalPeopleArray.toString();
                 scheduleModel.setRoleSchedulePeople(finalScheduleObject);
             } else {
                 acceptedScheduleModel.put("acceptedUserId", requestedUserId);
-                acceptedScheduleModel.put("selectedRoleId", scheduleId);
+                acceptedScheduleModel.put("selectedRoleId", roleId);
                 JSONObject scheduleObject = new JSONObject(acceptedScheduleModel);
                 allPeopleArray.put(scheduleObject);
                 String finalScheduleObject = allPeopleArray.toString();
@@ -157,7 +208,9 @@ public class SchedulesRolesController {
             }
             scheduleRepository.save(scheduleModel);
         }
-        return ResponseEntity.status(HttpStatus.OK).body(scheduleModel);
+        assert scheduleModel != null;
+        scheduleModel.setScheduleTeamMemberList(allMembers);
+//        return ResponseEntity.status(HttpStatus.OK).body(scheduleModel);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

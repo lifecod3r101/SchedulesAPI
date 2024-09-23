@@ -44,6 +44,8 @@ dependencies {
     // https://mvnrepository.com/artifact/org.json/json
     implementation 'org.json:json:20231013'
 
+    implementation 'com.infobip:infobip-api-java-client:4.3.1'
+
 }
 
 test {
@@ -57,6 +59,6 @@ jar {
 }
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }

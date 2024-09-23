@@ -1,6 +1,13 @@
 package org.example.Controllers;
 
 
+import com.infobip.ApiCallback;
+import com.infobip.ApiException;
+import com.infobip.api.SmsApi;
+import com.infobip.model.SmsAdvancedTextualRequest;
+import com.infobip.model.SmsDestination;
+import com.infobip.model.SmsResponse;
+import com.infobip.model.SmsTextualMessage;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.twiml.MessagingResponse;
 import com.twilio.twiml.messaging.Body;
@@ -22,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/message")
@@ -43,24 +51,45 @@ public class SchedulesMessageController {
     @Value("${twilio.property.sending_phone_number}")
     String sendingPhoneNumber;
 
+    @Value("${infobip.property.api_key}")
+    String infobipApiKey;
+
+    @Value("${infobip.property.base_url}")
+    String infobipBaseUrl;
+
 
     @PostMapping("/send")
     public ResponseEntity<?> sendSmsMessage(@RequestParam("recipientId") String[] recipientUserIdList, @RequestParam("userMessageId") String messageId) {
-        appStuff.initialiseTwilioService(twilioSid, twilioAuthToken);
-        ArrayList<Message> messagesList = new ArrayList<>();
+        SmsApi smsApi = new SmsApi(appStuff.initialiseInfobipService(infobipApiKey, infobipBaseUrl));
+        ArrayList<SmsDestination> smsDestinationList = new ArrayList<>();
         for (String recipientUserId : recipientUserIdList) {
             if (teamRepository.findById(recipientUserId).isPresent() && messageRepository.findById(messageId).isPresent()) {
+                SmsDestination userDestination = new SmsDestination();
                 String userPhoneNumber = teamRepository.findById(recipientUserId).get().getUserPhoneNumber();
-                String sendingMessageContent = messageRepository.findById(messageId).get().getMessageContent();
                 SchedulesTeamMessagesModel teamMessagesModel = new SchedulesTeamMessagesModel();
                 teamMessagesModel.setMessageId(messageId);
                 teamMessagesModel.setUserId(recipientUserId);
+                userDestination.setTo(userPhoneNumber);
                 teamMessageRepository.save(teamMessagesModel);
-                Message message = Message.creator(new PhoneNumber("+".concat(userPhoneNumber)), new PhoneNumber("+".concat(sendingPhoneNumber)), sendingMessageContent).create();
-                messagesList.add(message);
+                smsDestinationList.add(userDestination);
             }
         }
-        return ResponseEntity.status(HttpStatus.OK).body(messagesList);
+        String sendingMessageContent = messageRepository.findById(messageId).get().getMessageContent();
+        SmsTextualMessage smsMessage = new SmsTextualMessage().from("TeamDream").destinations(smsDestinationList).text(sendingMessageContent);
+        SmsAdvancedTextualRequest smsMessageRequest = new SmsAdvancedTextualRequest()
+                .messages(List.of(smsMessage));
+        smsApi.sendSmsMessage(smsMessageRequest).executeAsync(new ApiCallback<>() {
+            @Override
+            public void onSuccess(SmsResponse result, int responseStatusCode, Map<String, List<String>> responseHeaders) {
+                System.out.println("Message Sent");
+            }
+
+            @Override
+            public void onFailure(ApiException exception, int responseStatusCode, Map<String, List<String>> responseHeaders) {
+                System.out.println("Message Failed to be Sent");
+            }
+        });
+        return ResponseEntity.status(HttpStatus.OK).body(smsDestinationList);
     }
 
     //Method is to be revisited
