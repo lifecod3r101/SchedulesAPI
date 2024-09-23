@@ -3,8 +3,8 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-!resources/application.properties
-!resources/application-render.properties
+resources/application.properties
+resources/application-render.properties
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
@@ -42,3 +42,5 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+/src/main/resources/application-cloud.properties
+/src/main/resources/security.properties
