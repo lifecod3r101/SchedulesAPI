@@ -1,8 +1,7 @@
-package org.example.Repositories;
+package org.example.Misc;
 
-import org.example.Models.SchedulesAdminsModel;
 import org.springframework.data.repository.CrudRepository;
 
 public interface SchedulesAdminsRepository extends CrudRepository<SchedulesAdminsModel, String> {
-    SchedulesAdminsModel findOneByEmailAddress(String adminEmail);
+//    SchedulesAdminsModel findOneByEmailAddress(String adminEmail);
 }
